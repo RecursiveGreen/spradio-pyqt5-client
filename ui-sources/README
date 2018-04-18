@@ -1,0 +1,5 @@
+The files in this folder are what the UI is based on, but not what the program
+actually loads. These are stepping stones in converting to pure Python code.
+There will be inconsistencies so do not use these other than for reference.
+
+You have been warned. . .
