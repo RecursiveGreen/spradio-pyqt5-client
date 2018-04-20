@@ -20,8 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import sys
+import traceback
 
-from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtCore import QCoreApplication, qFatal, QT_VERSION
 from PyQt5.QtWidgets import QApplication
 
 from ui.mainwindow import Client
@@ -34,6 +35,15 @@ APPLICATION_NAME = 'Innkeeper'
 # Globals are not fun, but this is to prevent random crashes when exiting.
 # http://pyqt.sourceforge.net/Docs/PyQt5/gotchas.html#crashes-on-exit
 app = None
+
+# PyQt5 doesn't always get the entire traceback out to the terminal before
+# crashing. This gets around that.
+# https://stackoverflow.com/questions/44447674/
+if QT_VERSION >= 0x50501:
+    def excepthook(type_, value, traceback_):
+        traceback.print_exception(type_, value, traceback_)
+        qFatal('')
+sys.excepthook = excepthook
 
 
 def main():
