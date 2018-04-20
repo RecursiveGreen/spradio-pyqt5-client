@@ -9,6 +9,7 @@ from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import (QAction, qApp, QGridLayout, QMainWindow,
                              QMessageBox, QTabWidget, QWidget)
 
+from .dialogs.settings import SettingsDialog
 from .widgets import ControlsTab, PlaylistTab
 
 
@@ -20,6 +21,10 @@ class Client(QMainWindow):
         self.initUi()
 
     def initActions(self):
+        self.actionSettings = QAction('&Settings', self)
+        self.actionSettings.setStatusTip('Change application settings')
+        self.actionSettings.triggered.connect(self.showSettings)
+
         self.actionExit = QAction('&Exit', self)
         self.actionExit.setShortcut('Ctrl+Q')
         self.actionExit.setStatusTip('Exit application')
@@ -36,6 +41,8 @@ class Client(QMainWindow):
     def initMenu(self):
         self.menu = self.menuBar()
         self.menuFile = self.menu.addMenu('&File')
+        self.menuFile.addAction(self.actionSettings)
+        self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
         self.menuHelp = self.menu.addMenu('&Help')
         self.menuHelp.addAction(self.actionAbout)
@@ -74,6 +81,10 @@ class Client(QMainWindow):
 
         self.tabWidgetMain.setCurrentIndex(0)
         self.show()
+
+    def showSettings(self):
+        dialogSettings = SettingsDialog()
+        dialogSettings.exec_()
 
     def about(self):
         QMessageBox.about(self,
