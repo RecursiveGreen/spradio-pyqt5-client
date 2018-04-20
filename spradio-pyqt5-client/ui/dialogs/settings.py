@@ -25,7 +25,7 @@ class ServerSettingsWidget(QWidget):
         self.parent = parent
 
         self.initUi()
-        self.loadSavedValues()
+        self.loadSettings()
 
     def initUi(self):
         self.setObjectName('widgetServerSettings')
@@ -55,7 +55,7 @@ class ServerSettingsWidget(QWidget):
         self.lineEditApiUrl.textEdited.connect(self.modified)
         self.lineEditApiToken.textEdited.connect(self.modified)
 
-    def loadSavedValues(self):
+    def loadSettings(self):
         if self.parent:
             settings = self.parent.settings
             self.lineEditApiUrl.setText(settings.value('server/api_base_url',
@@ -65,7 +65,7 @@ class ServerSettingsWidget(QWidget):
                 # http://bash.org/?244321=
                 self.lineEditApiToken.setText('hunter2')
 
-    def modified(self, text):
+    def modified(self, *args, **kwargs):
         if self.sender().objectName() not in self.parent.modified_settings:
             self.parent.modified_settings.append(self.sender().objectName())
         self.parent.buttonBox.button(QDialogButtonBox.Apply).setEnabled(True)
