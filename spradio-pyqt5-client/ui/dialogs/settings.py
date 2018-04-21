@@ -176,15 +176,14 @@ class SettingsDialog(QDialog):
                                          'Token',
                                          widget.text())
         self.settings.sync()
+        self.modified_settings = []
         self.buttonBox.button(QDialogButtonBox.Apply).setEnabled(False)
 
     def accept(self):
         self.saveSettings()
-        self.modified_settings = []
         self.done(QDialog.Accepted)
 
     def reject(self):
-        self.modified_settings = []
         self.done(QDialog.Rejected)
 
     def retranslateUi(self):
