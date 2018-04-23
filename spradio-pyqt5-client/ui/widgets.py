@@ -5,11 +5,12 @@
 Custom widgets for Innkeeper's main window.
 '''
 
-from PyQt5.QtCore import pyqtSlot, QCoreApplication, QItemSelection
+from PyQt5.QtCore import pyqtSlot, QCoreApplication, QItemSelection, QSize, Qt
 from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5.QtWidgets import (QAbstractItemView, QGroupBox, QHBoxLayout,
-                             QPushButton, QSizePolicy, QSpacerItem, QTableView,
-                             QVBoxLayout, QWidget)
+from PyQt5.QtWidgets import (QAbstractItemView, QAbstractSpinBox, QGroupBox,
+                             QHBoxLayout, QLabel, QPushButton, QSizePolicy,
+                             QSpacerItem, QSpinBox, QTableView, QVBoxLayout,
+                             QWidget)
 
 from .models.radio import (AlbumTableModel, ArtistTableModel, GameTableModel,
                            SongTableModel)
@@ -67,15 +68,69 @@ class BaseItemGroupBox(QGroupBox):
         self.buttonRefresh.setObjectName('buttonRefresh' +
                                          self.plural.capitalize())
         icon = QIcon()
-        icon.addPixmap(QPixmap(":/icons/refresh.svg"), QIcon.Normal, QIcon.On)
+        icon.addPixmap(QPixmap(':/icons/refresh.svg'), QIcon.Normal, QIcon.On)
         self.buttonRefresh.setIcon(icon)
         self.buttonRefresh.setFlat(True)
-        spacer = QSpacerItem(40, 20,
-                             QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacerLeft = QSpacerItem(40, 20,
+                                 QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.buttonFirstPage = QPushButton(self)
+        self.buttonFirstPage.setObjectName('buttonFirstPage' +
+                                           self.plural.capitalize())
+        icon = QIcon()
+        icon.addPixmap(QPixmap(':/icons/arrow-thin-left.svg'),
+                       QIcon.Normal,
+                       QIcon.On)
+        self.buttonFirstPage.setIcon(icon)
+        self.buttonFirstPage.setFlat(True)
+        self.buttonPreviousPage = QPushButton(self)
+        self.buttonPreviousPage.setObjectName('buttonPreviousPage' +
+                                              self.plural.capitalize())
+        icon = QIcon()
+        icon.addPixmap(QPixmap(':/icons/cheveron-left.svg'),
+                       QIcon.Normal,
+                       QIcon.On)
+        self.buttonPreviousPage.setIcon(icon)
+        self.buttonPreviousPage.setFlat(True)
+
+        self.spinBoxCurrentPage = QSpinBox(self)
+        self.spinBoxCurrentPage.setObjectName('spinBoxCurrentPage' +
+                                              self.plural.capitalize())
+        self.spinBoxCurrentPage.setMaximumSize(QSize(30, 16777215))
+        self.spinBoxCurrentPage.setAlignment(Qt.AlignCenter)
+        self.spinBoxCurrentPage.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.spinBoxCurrentPage.setMinimum(1)
+        self.spinBoxCurrentPage.setMaximum(9999)
+
+        self.labelTotalPages = QLabel(self)
+        self.labelTotalPages.setObjectName('labelTotalPages' +
+                                           self.plural.capitalize())
+        self.labelTotalPages.setMaximumSize(QSize(40, 16777215))
+        self.labelTotalPages.setText('/ ----')
+
+        self.buttonNextPage = QPushButton(self)
+        self.buttonNextPage.setObjectName('buttonNextPage' +
+                                          self.plural.capitalize())
+        icon = QIcon()
+        icon.addPixmap(QPixmap(':/icons/cheveron-right.svg'),
+                       QIcon.Normal,
+                       QIcon.On)
+        self.buttonNextPage.setIcon(icon)
+        self.buttonNextPage.setFlat(True)
+        self.buttonLastPage = QPushButton(self)
+        self.buttonLastPage.setObjectName('buttonLastPage' +
+                                          self.plural.capitalize())
+        icon = QIcon()
+        icon.addPixmap(QPixmap(':/icons/arrow-thin-right.svg'),
+                       QIcon.Normal,
+                       QIcon.On)
+        self.buttonLastPage.setIcon(icon)
+        self.buttonLastPage.setFlat(True)
+        spacerRight = QSpacerItem(40, 20,
+                                  QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.buttonAdd = QPushButton(self)
         self.buttonAdd.setObjectName('buttonAdd' + self.plural.capitalize())
         icon = QIcon()
-        icon.addPixmap(QPixmap(":/icons/add-outline.svg"),
+        icon.addPixmap(QPixmap(':/icons/add-outline.svg'),
                        QIcon.Normal,
                        QIcon.On)
         self.buttonAdd.setIcon(icon)
@@ -83,7 +138,7 @@ class BaseItemGroupBox(QGroupBox):
         self.buttonEdit = QPushButton(self)
         self.buttonEdit.setObjectName('buttonEdit' + self.plural.capitalize())
         icon = QIcon()
-        icon.addPixmap(QPixmap(":/icons/edit-pencil.svg"),
+        icon.addPixmap(QPixmap(':/icons/edit-pencil.svg'),
                        QIcon.Normal,
                        QIcon.On)
         self.buttonEdit.setIcon(icon)
@@ -92,14 +147,21 @@ class BaseItemGroupBox(QGroupBox):
         self.buttonDelete = QPushButton(self)
         self.buttonDelete.setObjectName('buttonDelete' + plural.capitalize())
         icon = QIcon()
-        icon.addPixmap(QPixmap(":/icons/minus-outline.svg"),
+        icon.addPixmap(QPixmap(':/icons/minus-outline.svg'),
                        QIcon.Normal,
                        QIcon.On)
         self.buttonDelete.setIcon(icon)
         self.buttonDelete.setFlat(True)
 
         self.horizontalLayout.addWidget(self.buttonRefresh)
-        self.horizontalLayout.addItem(spacer)
+        self.horizontalLayout.addItem(spacerLeft)
+        self.horizontalLayout.addWidget(self.buttonFirstPage)
+        self.horizontalLayout.addWidget(self.buttonPreviousPage)
+        self.horizontalLayout.addWidget(self.spinBoxCurrentPage)
+        self.horizontalLayout.addWidget(self.labelTotalPages)
+        self.horizontalLayout.addWidget(self.buttonNextPage)
+        self.horizontalLayout.addWidget(self.buttonLastPage)
+        self.horizontalLayout.addItem(spacerRight)
         self.horizontalLayout.addWidget(self.buttonAdd)
         self.horizontalLayout.addWidget(self.buttonEdit)
         self.horizontalLayout.addWidget(self.buttonDelete)

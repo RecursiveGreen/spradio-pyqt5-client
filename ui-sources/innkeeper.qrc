@@ -1,5 +1,9 @@
 <RCC>
   <qresource prefix="/">
+    <file>icons/arrow-thin-left.svg</file>
+    <file>icons/arrow-thin-right.svg</file>
+    <file>icons/cheveron-left.svg</file>
+    <file>icons/cheveron-right.svg</file>
     <file>icons/add-outline.svg</file>
     <file>icons/edit-pencil.svg</file>
     <file>icons/minus-outline.svg</file>
