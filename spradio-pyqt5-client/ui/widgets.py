@@ -6,8 +6,12 @@ Custom widgets for Innkeeper's main window.
 '''
 
 from PyQt5.QtCore import QCoreApplication
-from PyQt5.QtWidgets import (QGroupBox, QHBoxLayout, QPushButton, QSizePolicy,
-                             QSpacerItem, QTableView, QVBoxLayout, QWidget)
+from PyQt5.QtWidgets import (QAbstractItemView, QGroupBox, QHBoxLayout,
+                             QPushButton, QSizePolicy, QSpacerItem, QTableView,
+                             QVBoxLayout, QWidget)
+
+from .models.radio import (AlbumTableModel, ArtistTableModel, GameTableModel,
+                           SongTableModel)
 
 
 class BaseItemGroupBox(QGroupBox):
@@ -38,6 +42,8 @@ class BaseItemGroupBox(QGroupBox):
 
         self.tableView = QTableView(self)
         self.tableView.setObjectName('tableView' + self.plural.capitalize())
+        self.tableView.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.verticalLayout.addWidget(self.tableView)
 
         self.horizontalLayout = QHBoxLayout()
@@ -83,6 +89,42 @@ class BaseItemGroupBox(QGroupBox):
                                     'Delete ' + self.name.capitalize()))
 
 
+class AlbumGroupBox(BaseItemGroupBox):
+    '''A GroupBox for administrating albums.'''
+    def __init__(self, parent=None):
+        super().__init__(parent, name='album', plural='albums', vstretch=1)
+
+        self.model = AlbumTableModel(parent=self, name='albums')
+        self.tableView.setModel(self.model)
+
+
+class ArtistGroupBox(BaseItemGroupBox):
+    '''A GroupBox for administrating artists.'''
+    def __init__(self, parent=None):
+        super().__init__(parent, name='artist', plural='artists', vstretch=2)
+
+        self.model = ArtistTableModel(parent=self, name='artists')
+        self.tableView.setModel(self.model)
+
+
+class GameGroupBox(BaseItemGroupBox):
+    '''A GroupBox for administrating games.'''
+    def __init__(self, parent=None):
+        super().__init__(parent, name='game', plural='games', vstretch=1)
+
+        self.model = GameTableModel(parent=self, name='games')
+        self.tableView.setModel(self.model)
+
+
+class SongGroupBox(BaseItemGroupBox):
+    '''A GroupBox for administrating songs.'''
+    def __init__(self, parent=None):
+        super().__init__(parent, name='song', plural='songs', hstretch=2)
+
+        self.model = SongTableModel(parent=self, name='songs')
+        self.tableView.setModel(self.model)
+
+
 class PlaylistTab(QWidget):
     '''A widget for administrating the all models of the playlist data.'''
     def __init__(self, parent=None):
@@ -111,22 +153,10 @@ class PlaylistTab(QWidget):
         self.horizontalLayout.addWidget(self.verticalWidget)
 
         # Create the group box widgets for the playlist items
-        self.groupBoxArtists = BaseItemGroupBox(self.verticalWidget,
-                                                name='artist',
-                                                plural='artists',
-                                                vstretch=2)
-        self.groupBoxAlbums = BaseItemGroupBox(self.verticalWidget,
-                                               name='album',
-                                               plural='albums',
-                                               vstretch=1)
-        self.groupBoxGames = BaseItemGroupBox(self.verticalWidget,
-                                              name='game',
-                                              plural='games',
-                                              vstretch=1)
-        self.groupBoxSongs = BaseItemGroupBox(self.verticalWidget,
-                                              name='song',
-                                              plural='songs',
-                                              hstretch=2)
+        self.groupBoxArtists = ArtistGroupBox(self)
+        self.groupBoxAlbums = AlbumGroupBox(self)
+        self.groupBoxGames = GameGroupBox(self)
+        self.groupBoxSongs = SongGroupBox(self)
 
         # Add group boxes to layouts
         self.verticalLayout.addWidget(self.groupBoxArtists)
