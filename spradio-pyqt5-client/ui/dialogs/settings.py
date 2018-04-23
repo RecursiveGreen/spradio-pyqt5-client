@@ -17,12 +17,23 @@ from PyQt5.QtWidgets import (qApp, QDialog, QDialogButtonBox, QFormLayout,
 from .. import resources
 
 
-class ServerSettingsWidget(QWidget):
-    '''Widget for the settings involving server connectivity.'''
+class SettingsWidgetBase(QWidget):
+    '''Base widget for settings pages.'''
     def __init__(self, parent=None):
         super().__init__(parent)
 
         self.parent = parent
+
+    def modified(self, *args, **kwargs):
+        if self.sender().objectName() not in self.parent.modified_settings:
+            self.parent.modified_settings.append(self.sender().objectName())
+        self.parent.buttonBox.button(QDialogButtonBox.Apply).setEnabled(True)
+
+
+class ServerSettingsWidget(SettingsWidgetBase):
+    '''Widget for the settings involving server connectivity.'''
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
         self.initUi()
         self.loadSettings()
@@ -64,11 +75,6 @@ class ServerSettingsWidget(QWidget):
                 # Don't put the real token in there. Fill it with fluff.
                 # http://bash.org/?244321=
                 self.lineEditApiToken.setText('hunter2')
-
-    def modified(self, *args, **kwargs):
-        if self.sender().objectName() not in self.parent.modified_settings:
-            self.parent.modified_settings.append(self.sender().objectName())
-        self.parent.buttonBox.button(QDialogButtonBox.Apply).setEnabled(True)
 
 
 class SettingsDialog(QDialog):
