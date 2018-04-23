@@ -5,7 +5,7 @@
 Custom widgets for Innkeeper's main window.
 '''
 
-from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtCore import pyqtSlot, QCoreApplication, QItemSelection
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import (QAbstractItemView, QGroupBox, QHBoxLayout,
                              QPushButton, QSizePolicy, QSpacerItem, QTableView,
@@ -13,6 +13,18 @@ from PyQt5.QtWidgets import (QAbstractItemView, QGroupBox, QHBoxLayout,
 
 from .models.radio import (AlbumTableModel, ArtistTableModel, GameTableModel,
                            SongTableModel)
+
+
+class DeselectableTableView(QTableView):
+    '''
+    Custom Table View that allows deselecting items if clicking on the
+    whitespace area outside of the table.
+
+    (Thanks to https://stackoverflow.com/questions/2761284/)
+    '''
+    def mousePressEvent(self, event):
+        self.clearSelection()
+        QTableView.mousePressEvent(self, event)
 
 
 class BaseItemGroupBox(QGroupBox):
@@ -41,7 +53,7 @@ class BaseItemGroupBox(QGroupBox):
         self.verticalLayout.setContentsMargins(3, 3, 3, 3)
         self.verticalLayout.setSpacing(3)
 
-        self.tableView = QTableView(self)
+        self.tableView = DeselectableTableView(self)
         self.tableView.setObjectName('tableView' + self.plural.capitalize())
         self.tableView.setSelectionMode(QAbstractItemView.SingleSelection)
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -76,6 +88,7 @@ class BaseItemGroupBox(QGroupBox):
                        QIcon.On)
         self.buttonEdit.setIcon(icon)
         self.buttonEdit.setFlat(True)
+        self.buttonEdit.setEnabled(False)
         self.buttonDelete = QPushButton(self)
         self.buttonDelete.setObjectName('buttonDelete' + plural.capitalize())
         icon = QIcon()
@@ -95,6 +108,13 @@ class BaseItemGroupBox(QGroupBox):
 
         self.retranslateUi()
 
+    @pyqtSlot(QItemSelection)
+    def selectRadioItems(self, item=QItemSelection()):
+        if not item.indexes():
+            self.buttonEdit.setEnabled(False)
+        else:
+            self.buttonEdit.setEnabled(True)
+
     def retranslateUi(self):
         '''Translate labels into the native OS language.'''
         _ = QCoreApplication.translate
@@ -110,6 +130,8 @@ class AlbumGroupBox(BaseItemGroupBox):
 
         self.model = AlbumTableModel(parent=self, name='albums')
         self.tableView.setModel(self.model)
+        selection_model = self.tableView.selectionModel()
+        selection_model.selectionChanged.connect(self.selectRadioItems)
 
 
 class ArtistGroupBox(BaseItemGroupBox):
@@ -119,6 +141,8 @@ class ArtistGroupBox(BaseItemGroupBox):
 
         self.model = ArtistTableModel(parent=self, name='artists')
         self.tableView.setModel(self.model)
+        selection_model = self.tableView.selectionModel()
+        selection_model.selectionChanged.connect(self.selectRadioItems)
 
 
 class GameGroupBox(BaseItemGroupBox):
@@ -128,6 +152,8 @@ class GameGroupBox(BaseItemGroupBox):
 
         self.model = GameTableModel(parent=self, name='games')
         self.tableView.setModel(self.model)
+        selection_model = self.tableView.selectionModel()
+        selection_model.selectionChanged.connect(self.selectRadioItems)
 
 
 class SongGroupBox(BaseItemGroupBox):
@@ -137,6 +163,8 @@ class SongGroupBox(BaseItemGroupBox):
 
         self.model = SongTableModel(parent=self, name='songs')
         self.tableView.setModel(self.model)
+        selection_model = self.tableView.selectionModel()
+        selection_model.selectionChanged.connect(self.selectRadioItems)
 
 
 class PlaylistTab(QWidget):
