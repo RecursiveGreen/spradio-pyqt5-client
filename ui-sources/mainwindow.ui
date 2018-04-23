@@ -111,7 +111,15 @@
                 <item>
                  <widget class="QPushButton" name="buttonAddArtists">
                   <property name="text">
-                   <string>Add Artist</string>
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset>
+                    <normalon>:/icons/refresh.svg</normalon>
+                   </iconset>
+                  </property>
+                  <property name="flat">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
@@ -129,29 +137,44 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="buttonEditArtists">
+                 <widget class="QPushButton" name="pushButton">
                   <property name="text">
-                   <string>Edit Artist</string>
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="innkeeper.qrc">
+                    <normaloff>:/icons/add-outline.svg</normaloff>:/icons/add-outline.svg</iconset>
+                  </property>
+                  <property name="flat">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <spacer name="spacerRightArtists">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
+                 <widget class="QPushButton" name="buttonEditArtists">
+                  <property name="text">
+                   <string/>
                   </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
+                  <property name="icon">
+                   <iconset resource="innkeeper.qrc">
+                    <normaloff>:/icons/edit-pencil.svg</normaloff>:/icons/edit-pencil.svg</iconset>
                   </property>
-                 </spacer>
+                  <property name="flat">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
                 </item>
                 <item>
                  <widget class="QPushButton" name="buttonDeleteArtists">
                   <property name="text">
-                   <string>Delete Artist</string>
+                   <string/>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="innkeeper.qrc">
+                    <normaloff>:/icons/minus-outline.svg</normaloff>:/icons/minus-outline.svg</iconset>
+                  </property>
+                  <property name="flat">
+                   <bool>true</bool>
                   </property>
                  </widget>
                 </item>
@@ -481,6 +504,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="innkeeper.qrc"/>
+ </resources>
  <connections/>
 </ui>

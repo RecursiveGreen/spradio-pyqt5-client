@@ -6,6 +6,7 @@ Custom widgets for Innkeeper's main window.
 '''
 
 from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import (QAbstractItemView, QGroupBox, QHBoxLayout,
                              QPushButton, QSizePolicy, QSpacerItem, QTableView,
                              QVBoxLayout, QWidget)
@@ -50,25 +51,44 @@ class BaseItemGroupBox(QGroupBox):
         self.horizontalLayout.setObjectName('horizontalLayout' +
                                             plural.capitalize())
 
+        self.buttonRefresh = QPushButton(self)
+        self.buttonRefresh.setObjectName('buttonRefresh' +
+                                         self.plural.capitalize())
+        icon = QIcon()
+        icon.addPixmap(QPixmap(":/icons/refresh.svg"), QIcon.Normal, QIcon.On)
+        self.buttonRefresh.setIcon(icon)
+        self.buttonRefresh.setFlat(True)
+        spacer = QSpacerItem(40, 20,
+                             QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.buttonAdd = QPushButton(self)
         self.buttonAdd.setObjectName('buttonAdd' + self.plural.capitalize())
-        spacerLeft = QSpacerItem(40,
-                                 20,
-                                 QSizePolicy.Expanding,
-                                 QSizePolicy.Minimum)
+        icon = QIcon()
+        icon.addPixmap(QPixmap(":/icons/add-outline.svg"),
+                       QIcon.Normal,
+                       QIcon.On)
+        self.buttonAdd.setIcon(icon)
+        self.buttonAdd.setFlat(True)
         self.buttonEdit = QPushButton(self)
         self.buttonEdit.setObjectName('buttonEdit' + self.plural.capitalize())
-        spacerRight = QSpacerItem(40,
-                                  20,
-                                  QSizePolicy.Expanding,
-                                  QSizePolicy.Minimum)
+        icon = QIcon()
+        icon.addPixmap(QPixmap(":/icons/edit-pencil.svg"),
+                       QIcon.Normal,
+                       QIcon.On)
+        self.buttonEdit.setIcon(icon)
+        self.buttonEdit.setFlat(True)
         self.buttonDelete = QPushButton(self)
         self.buttonDelete.setObjectName('buttonDelete' + plural.capitalize())
+        icon = QIcon()
+        icon.addPixmap(QPixmap(":/icons/minus-outline.svg"),
+                       QIcon.Normal,
+                       QIcon.On)
+        self.buttonDelete.setIcon(icon)
+        self.buttonDelete.setFlat(True)
 
+        self.horizontalLayout.addWidget(self.buttonRefresh)
+        self.horizontalLayout.addItem(spacer)
         self.horizontalLayout.addWidget(self.buttonAdd)
-        self.horizontalLayout.addItem(spacerLeft)
         self.horizontalLayout.addWidget(self.buttonEdit)
-        self.horizontalLayout.addItem(spacerRight)
         self.horizontalLayout.addWidget(self.buttonDelete)
 
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -81,12 +101,6 @@ class BaseItemGroupBox(QGroupBox):
 
         # Group Box header
         self.setTitle(_('Client', self.plural.capitalize()))
-
-        # Button labels
-        self.buttonAdd.setText(_('Client', 'Add ' + self.name.capitalize()))
-        self.buttonEdit.setText(_('Client', 'Edit ' + self.name.capitalize()))
-        self.buttonDelete.setText(_('Client',
-                                    'Delete ' + self.name.capitalize()))
 
 
 class AlbumGroupBox(BaseItemGroupBox):

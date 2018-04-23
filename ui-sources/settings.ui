@@ -43,6 +43,16 @@
        </iconset>
       </property>
      </item>
+     <item>
+      <property name="text">
+       <string>Music</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normalon>:/icons/music-notes.svg</normalon>
+       </iconset>
+      </property>
+     </item>
     </widget>
    </item>
    <item>
