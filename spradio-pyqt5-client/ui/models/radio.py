@@ -81,7 +81,7 @@ class AlbumTableModel(BaseRadioModel):
 class GameTableModel(BaseRadioModel):
     '''Data model to represent games on the radio.'''
     def __init__(self, parent=None, name='games'):
-        super().__init__(parent, name)
+        super().__init__(parent)
 
         self.name = name
         self.columns = {'title': 'Title'}
@@ -91,7 +91,8 @@ class GameTableModel(BaseRadioModel):
 class SongTableModel(BaseRadioModel):
     '''Data model to represent songs on the radio.'''
     def __init__(self, parent=None, name='songs'):
-        super().__init__(parent, name)
+        super().__init__(parent)
 
+        self.name = name
         self.columns = {'title': 'Title'}
         self.updateData()
