@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import qApp
 
 import requests
 
+from ..utils import full_name
 
 class BaseRadioModel(QAbstractTableModel):
     '''Base data model to represent radio items.'''
@@ -73,9 +74,13 @@ class ArtistTableModel(BaseRadioModel):
         super().__init__(parent)
 
         self.name = name
-        self.columns = {'first_name': 'First Name',
-                        'alias': 'Alias',
-                        'last_name': 'Last Name'}
+        self.columns = {'full_name': 'Full Name'}
+
+    def data(self, index, role):
+        if index.isValid():
+            if (role == Qt.DisplayRole) or (role == Qt.EditRole):
+                return full_name(self._data[index.row()])
+        return None
 
 
 class AlbumTableModel(BaseRadioModel):
