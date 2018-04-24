@@ -107,4 +107,20 @@ class SongTableModel(BaseRadioModel):
         super().__init__(parent)
 
         self.name = name
-        self.columns = {'title': 'Title'}
+        self.columns = {'game': 'Game',
+                        'album': 'Album',
+                        'artists': 'Artists',
+                        'title': 'Title'}
+
+    def data(self, index, role):
+        if index.isValid():
+            if (role == Qt.DisplayRole) or (role == Qt.EditRole):
+                attr_name = list(self.columns.keys())[index.column()]
+                row = self._data[index.row()]
+                if attr_name == 'game' or attr_name == 'album':
+                    return row[attr_name]['title']
+                elif attr_name == 'artists':
+                    artists = ', '.join([full_name(a) for a in row['artists']])
+                    return artists
+                return row[attr_name]
+        return None
