@@ -8,9 +8,9 @@ Custom widgets for Innkeeper's main window.
 from PyQt5.QtCore import pyqtSlot, QCoreApplication, QItemSelection, QSize, Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import (QAbstractItemView, QAbstractSpinBox, QGroupBox,
-                             QHBoxLayout, QLabel, QPushButton, QSizePolicy,
-                             QSpacerItem, QSpinBox, QTableView, QVBoxLayout,
-                             QWidget)
+                             QHBoxLayout, QHeaderView, QLabel, QPushButton,
+                             QSizePolicy, QSpacerItem, QSpinBox, QTableView,
+                             QVBoxLayout, QWidget)
 
 from .models.radio import (AlbumTableModel, ArtistTableModel, GameTableModel,
                            SongTableModel)
@@ -212,6 +212,7 @@ class BaseItemGroupBox(QGroupBox):
         '''
         self.model.current_page = self.spinBoxCurrentPage.value()
         self.model.updateData()
+        self.resizeColumns()
 
         current = self.model.current_page
         total = self.model.total_pages
@@ -224,6 +225,16 @@ class BaseItemGroupBox(QGroupBox):
         self.labelTotalPages.setText('/ ' + str(total))
         self.buttonNextPage.setEnabled(end)
         self.buttonLastPage.setEnabled(end)
+
+    def resizeColumns(self):
+        '''Automatically resizes table columns to fit new data.'''
+        header = self.tableView.horizontalHeader()
+        for column in range(self.model.columnCount()):
+            if column == 0:
+                header.setSectionResizeMode(0, QHeaderView.Stretch)
+            else:
+                header.setSectionResizeMode(column,
+                                            QHeaderView.ResizeToContents)
 
     def retranslateUi(self):
         '''Translate labels into the native OS language.'''
