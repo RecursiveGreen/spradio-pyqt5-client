@@ -19,19 +19,30 @@ class BaseRadioModel(QAbstractTableModel):
         super().__init__(parent)
 
         self.name = ''
-        self._data = []
         self.columns = {}
+
+        self._data = []
+        self.current_page = 1
+        self.total_pages = 1
 
     def updateData(self):
         settings = QSettings()
         base_url = settings.value('server/api_base_url', type=str)
-        url = base_url + self.name + '/'
+        url = base_url + self.name + '/?page=' + str(self.current_page)
         password = 'Token ' + keyring.get_password(qApp.applicationName(),
                                                    'Token')
         headers = {'content-type': 'application/json',
                    'authorization': password}
         req = requests.get(url, headers=headers)
         self._data = req.json()['results']
+        self.total_pages = req.json()['total_pages']
+
+        # Force the view to refresh itself after the data has been changed.
+        self.layoutAboutToBeChanged.emit()
+        self.dataChanged.emit(self.createIndex(0, 0),
+                              self.createIndex(self.rowCount(0),
+                                               self.columnCount(0)))
+        self.layoutChanged.emit()
 
     def columnCount(self, parent=QModelIndex()):
         return len(self.columns)
@@ -65,7 +76,6 @@ class ArtistTableModel(BaseRadioModel):
         self.columns = {'first_name': 'First Name',
                         'alias': 'Alias',
                         'last_name': 'Last Name'}
-        self.updateData()
 
 
 class AlbumTableModel(BaseRadioModel):
@@ -75,7 +85,6 @@ class AlbumTableModel(BaseRadioModel):
 
         self.name = name
         self.columns = {'title': 'Title'}
-        self.updateData()
 
 
 class GameTableModel(BaseRadioModel):
@@ -85,7 +94,6 @@ class GameTableModel(BaseRadioModel):
 
         self.name = name
         self.columns = {'title': 'Title'}
-        self.updateData()
 
 
 class SongTableModel(BaseRadioModel):
@@ -95,4 +103,3 @@ class SongTableModel(BaseRadioModel):
 
         self.name = name
         self.columns = {'title': 'Title'}
-        self.updateData()

@@ -82,6 +82,7 @@ class BaseItemGroupBox(QGroupBox):
                        QIcon.On)
         self.buttonFirstPage.setIcon(icon)
         self.buttonFirstPage.setFlat(True)
+        self.buttonFirstPage.setEnabled(False)
         self.buttonPreviousPage = QPushButton(self)
         self.buttonPreviousPage.setObjectName('buttonPreviousPage' +
                                               self.plural.capitalize())
@@ -91,7 +92,7 @@ class BaseItemGroupBox(QGroupBox):
                        QIcon.On)
         self.buttonPreviousPage.setIcon(icon)
         self.buttonPreviousPage.setFlat(True)
-
+        self.buttonPreviousPage.setEnabled(False)
         self.spinBoxCurrentPage = QSpinBox(self)
         self.spinBoxCurrentPage.setObjectName('spinBoxCurrentPage' +
                                               self.plural.capitalize())
@@ -168,6 +169,12 @@ class BaseItemGroupBox(QGroupBox):
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
+        self.buttonFirstPage.clicked.connect(self.updatePages)
+        self.buttonPreviousPage.clicked.connect(self.updatePages)
+        self.spinBoxCurrentPage.valueChanged.connect(self.updatePages)
+        self.buttonNextPage.clicked.connect(self.updatePages)
+        self.buttonLastPage.clicked.connect(self.updatePages)
+
         self.retranslateUi()
 
     @pyqtSlot(QItemSelection)
@@ -176,6 +183,47 @@ class BaseItemGroupBox(QGroupBox):
             self.buttonEdit.setEnabled(False)
         else:
             self.buttonEdit.setEnabled(True)
+
+    @pyqtSlot()
+    def updatePages(self, *args, **kwargs):
+        '''Updates the current page spinbox and updates data if necessary.'''
+        sender = self.sender().objectName()
+        minimum = self.spinBoxCurrentPage.minimum()
+        current = self.spinBoxCurrentPage.value()
+        maximum = self.spinBoxCurrentPage.maximum()
+
+        if sender.startswith('buttonFirstPage'):
+            self.spinBoxCurrentPage.setValue(minimum)
+        elif sender.startswith('buttonPreviousPage'):
+            if current > minimum:
+                self.spinBoxCurrentPage.setValue(current - 1)
+        elif sender.startswith('spinBoxCurrentPage'):
+            self.updateTable()
+        elif sender.startswith('buttonNextPage'):
+            if current < maximum:
+                self.spinBoxCurrentPage.setValue(current + 1)
+        elif sender.startswith('buttonLastPage'):
+            self.spinBoxCurrentPage.setValue(maximum)
+
+    def updateTable(self):
+        '''
+        Updates the data within the table view from the server. Also refreshes
+        the page controls to reflect the current position.
+        '''
+        self.model.current_page = self.spinBoxCurrentPage.value()
+        self.model.updateData()
+
+        current = self.model.current_page
+        total = self.model.total_pages
+        begin = bool(current != 1)
+        end = bool(current != total)
+
+        self.buttonFirstPage.setEnabled(begin)
+        self.buttonPreviousPage.setEnabled(begin)
+        self.spinBoxCurrentPage.setMaximum(total)
+        self.labelTotalPages.setText('/ ' + str(total))
+        self.buttonNextPage.setEnabled(end)
+        self.buttonLastPage.setEnabled(end)
 
     def retranslateUi(self):
         '''Translate labels into the native OS language.'''
@@ -194,6 +242,7 @@ class AlbumGroupBox(BaseItemGroupBox):
         self.tableView.setModel(self.model)
         selection_model = self.tableView.selectionModel()
         selection_model.selectionChanged.connect(self.selectRadioItems)
+        self.updateTable()
 
 
 class ArtistGroupBox(BaseItemGroupBox):
@@ -205,6 +254,7 @@ class ArtistGroupBox(BaseItemGroupBox):
         self.tableView.setModel(self.model)
         selection_model = self.tableView.selectionModel()
         selection_model.selectionChanged.connect(self.selectRadioItems)
+        self.updateTable()
 
 
 class GameGroupBox(BaseItemGroupBox):
@@ -216,6 +266,7 @@ class GameGroupBox(BaseItemGroupBox):
         self.tableView.setModel(self.model)
         selection_model = self.tableView.selectionModel()
         selection_model.selectionChanged.connect(self.selectRadioItems)
+        self.updateTable()
 
 
 class SongGroupBox(BaseItemGroupBox):
@@ -227,6 +278,7 @@ class SongGroupBox(BaseItemGroupBox):
         self.tableView.setModel(self.model)
         selection_model = self.tableView.selectionModel()
         selection_model.selectionChanged.connect(self.selectRadioItems)
+        self.updateTable()
 
 
 class PlaylistTab(QWidget):
