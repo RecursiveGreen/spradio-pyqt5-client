@@ -14,6 +14,7 @@ import requests
 
 from ..utils import full_name
 
+
 class BaseRadioModel(QAbstractTableModel):
     '''Base data model to represent radio items.'''
     def __init__(self, parent=None):
