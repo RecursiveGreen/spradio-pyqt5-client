@@ -5,14 +5,9 @@
 Data models used within the application for the radio playlist.
 '''
 
-import keyring
+from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt
 
-from PyQt5.QtCore import QAbstractTableModel, QModelIndex, QSettings, Qt
-from PyQt5.QtWidgets import qApp
-
-import requests
-
-from ..utils import full_name
+from ..utils import full_name, get_server_data
 
 
 class BaseRadioModel(QAbstractTableModel):
@@ -28,16 +23,9 @@ class BaseRadioModel(QAbstractTableModel):
         self.total_pages = 1
 
     def updateData(self):
-        settings = QSettings()
-        base_url = settings.value('server/api_base_url', type=str)
-        url = base_url + self.name + '/?page=' + str(self.current_page)
-        password = 'Token ' + keyring.get_password(qApp.applicationName(),
-                                                   'Token')
-        headers = {'content-type': 'application/json',
-                   'authorization': password}
-        req = requests.get(url, headers=headers)
-        self._data = req.json()['results']
-        self.total_pages = req.json()['total_pages']
+        status, results = get_server_data(self.name, self.current_page)
+        self._data = results['results']
+        self.total_pages = results['total_pages']
 
         # Force the view to refresh itself after the data has been changed.
         self.layoutAboutToBeChanged.emit()
@@ -58,6 +46,11 @@ class BaseRadioModel(QAbstractTableModel):
                 attr_name = list(self.columns.keys())[index.column()]
                 row = self._data[index.row()]
                 return row[attr_name]
+        return None
+
+    def rawData(self, index):
+        if index.isValid():
+            return self._data[index.row()]
         return None
 
     def flags(self, index):
