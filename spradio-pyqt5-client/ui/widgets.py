@@ -8,12 +8,14 @@ Custom widgets for Innkeeper's main window.
 from PyQt5.QtCore import pyqtSlot, QCoreApplication, QItemSelection, QSize, Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import (QAbstractItemView, QAbstractSpinBox, QGroupBox,
-                             QHBoxLayout, QHeaderView, QLabel, QPushButton,
-                             QSizePolicy, QSpacerItem, QSpinBox, QTableView,
-                             QVBoxLayout, QWidget)
+                             QHBoxLayout, QHeaderView, QLabel, QMessageBox,
+                             QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
+                             QTableView, QVBoxLayout, QWidget)
 
+from .dialogs.radio import ArtistDialog
 from .models.radio import (AlbumTableModel, ArtistTableModel, GameTableModel,
                            SongTableModel)
+from .utils import delete_server_data
 
 
 class DeselectableTableView(QTableView):
@@ -39,6 +41,9 @@ class BaseItemGroupBox(QGroupBox):
         super().__init__(parent)
         self.name = name
         self.plural = plural
+
+        self.current_selection = None
+        self.edit_dialog = None
 
         self.setObjectName('groupBox' + self.plural.capitalize())
 
@@ -153,6 +158,7 @@ class BaseItemGroupBox(QGroupBox):
                        QIcon.On)
         self.buttonDelete.setIcon(icon)
         self.buttonDelete.setFlat(True)
+        self.buttonDelete.setEnabled(False)
 
         self.horizontalLayout.addWidget(self.buttonRefresh)
         self.horizontalLayout.addItem(spacerLeft)
@@ -169,11 +175,17 @@ class BaseItemGroupBox(QGroupBox):
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
+        self.buttonRefresh.clicked.connect(self.updateTable)
+
         self.buttonFirstPage.clicked.connect(self.updatePages)
         self.buttonPreviousPage.clicked.connect(self.updatePages)
         self.spinBoxCurrentPage.valueChanged.connect(self.updatePages)
         self.buttonNextPage.clicked.connect(self.updatePages)
         self.buttonLastPage.clicked.connect(self.updatePages)
+
+        self.buttonAdd.clicked.connect(self.showDialog)
+        self.buttonEdit.clicked.connect(self.showDialog)
+        self.buttonDelete.clicked.connect(self.deleteItem)
 
         self.retranslateUi()
 
@@ -181,8 +193,12 @@ class BaseItemGroupBox(QGroupBox):
     def selectRadioItems(self, item=QItemSelection()):
         if not item.indexes():
             self.buttonEdit.setEnabled(False)
+            self.buttonDelete.setEnabled(False)
+            self.current_selection = None
         else:
             self.buttonEdit.setEnabled(True)
+            self.buttonDelete.setEnabled(True)
+            self.current_selection = self.model.rawData(item.indexes()[0])
 
     @pyqtSlot()
     def updatePages(self, *args, **kwargs):
@@ -205,6 +221,7 @@ class BaseItemGroupBox(QGroupBox):
         elif sender.startswith('buttonLastPage'):
             self.spinBoxCurrentPage.setValue(maximum)
 
+    @pyqtSlot()
     def updateTable(self):
         '''
         Updates the data within the table view from the server. Also refreshes
@@ -213,6 +230,9 @@ class BaseItemGroupBox(QGroupBox):
         self.model.current_page = self.spinBoxCurrentPage.value()
         self.model.updateData()
         self.resizeColumns()
+
+        self.tableView.clearSelection()
+        self.current_selection = None
 
         current = self.model.current_page
         total = self.model.total_pages
@@ -230,11 +250,28 @@ class BaseItemGroupBox(QGroupBox):
         '''Automatically resizes table columns to fit new data.'''
         header = self.tableView.horizontalHeader()
         for column in range(self.model.columnCount()):
-            if column == 0:
-                header.setSectionResizeMode(0, QHeaderView.Stretch)
-            else:
-                header.setSectionResizeMode(column,
-                                            QHeaderView.ResizeToContents)
+            header.setSectionResizeMode(column, QHeaderView.Stretch)
+
+    def showDialog(self):
+        if self.sender().objectName().startswith('buttonEdit'):
+            dialog = self.edit_dialog(**self.current_selection)
+        else:
+            dialog = self.edit_dialog()
+        dialog.exec_()
+        self.updateTable()
+
+    def deleteItem(self):
+        should_delete = QMessageBox.question(self,
+                                             'Delete ' + self.name,
+                                             ('Are you sure you wish to delete'
+                                              ' this ' + self.name + '?'),
+                                             QMessageBox.Yes |
+                                             QMessageBox.No,
+                                             QMessageBox.No)
+        if should_delete == QMessageBox.Yes:
+            endpoint = self.plural + '/' + str(self.current_selection['id'])
+            status, results = delete_server_data(endpoint)
+            self.updateTable()
 
     def retranslateUi(self):
         '''Translate labels into the native OS language.'''
@@ -261,6 +298,7 @@ class ArtistGroupBox(BaseItemGroupBox):
     def __init__(self, parent=None):
         super().__init__(parent, name='artist', plural='artists', vstretch=2)
 
+        self.edit_dialog = ArtistDialog
         self.model = ArtistTableModel(parent=self, name='artists')
         self.tableView.setModel(self.model)
         selection_model = self.tableView.selectionModel()
@@ -283,7 +321,7 @@ class GameGroupBox(BaseItemGroupBox):
 class SongGroupBox(BaseItemGroupBox):
     '''A GroupBox for administrating songs.'''
     def __init__(self, parent=None):
-        super().__init__(parent, name='song', plural='songs', hstretch=2)
+        super().__init__(parent, name='song', plural='songs', hstretch=3)
 
         self.model = SongTableModel(parent=self, name='songs')
         self.tableView.setModel(self.model)
