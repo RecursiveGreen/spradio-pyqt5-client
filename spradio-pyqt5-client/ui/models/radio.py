@@ -15,8 +15,9 @@ class BaseRadioModel(QAbstractTableModel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.name = ''
-        self.columns = {}
+        self.name = parent.plural
+        self.columns = {k: v['header'] for (k, v) in parent.columns.items()
+                        if v['visible']}
 
         self._data = []
         self.current_page = 1
@@ -26,8 +27,12 @@ class BaseRadioModel(QAbstractTableModel):
         status, results = get_server_data(self.name, self.current_page)
         self._data = results['results']
         self.total_pages = results['total_pages']
+        self.updateLayout()
 
-        # Force the view to refresh itself after the data has been changed.
+    def updateLayout(self):
+        '''
+        Force the view to refresh itself after the data has been changed.
+        '''
         self.layoutAboutToBeChanged.emit()
         self.dataChanged.emit(self.createIndex(0, 0),
                               self.createIndex(self.rowCount(0),
@@ -48,7 +53,7 @@ class BaseRadioModel(QAbstractTableModel):
                 return row[attr_name]
         return None
 
-    def rawData(self, index):
+    def rowData(self, index):
         if index.isValid():
             return self._data[index.row()]
         return None
@@ -64,57 +69,38 @@ class BaseRadioModel(QAbstractTableModel):
 
 class ArtistTableModel(BaseRadioModel):
     '''Data model to represent artists on the radio.'''
-    def __init__(self, parent=None, name='artists'):
+    def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.name = name
-        self.columns = {'full_name': 'Full Name'}
-
-    def data(self, index, role):
-        if index.isValid():
-            if (role == Qt.DisplayRole) or (role == Qt.EditRole):
-                return full_name(self._data[index.row()])
-        return None
 
 
 class AlbumTableModel(BaseRadioModel):
     '''Data model to represent albums on the radio.'''
-    def __init__(self, parent=None, name='albums'):
+    def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.name = name
-        self.columns = {'title': 'Title'}
 
 
 class GameTableModel(BaseRadioModel):
     '''Data model to represent games on the radio.'''
-    def __init__(self, parent=None, name='games'):
+    def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.name = name
-        self.columns = {'title': 'Title'}
 
 
 class SongTableModel(BaseRadioModel):
     '''Data model to represent songs on the radio.'''
-    def __init__(self, parent=None, name='songs'):
+    def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.name = name
-        self.columns = {'game': 'Game',
-                        'album': 'Album',
-                        'artists': 'Artists',
-                        'title': 'Title'}
 
     def data(self, index, role):
         if index.isValid():
             if (role == Qt.DisplayRole) or (role == Qt.EditRole):
                 attr_name = list(self.columns.keys())[index.column()]
                 row = self._data[index.row()]
-                if attr_name == 'game' or attr_name == 'album':
-                    return row[attr_name]['title']
-                elif attr_name == 'artists':
-                    artists = ', '.join([full_name(a) for a in row['artists']])
-                    return artists
-                return row[attr_name]
+                if row[attr_name] is not None:
+                    if attr_name == 'game' or attr_name == 'album':
+                        return row[attr_name]['title']
+                    elif attr_name == 'artists':
+                        artists = ', '.join([full_name(a)
+                                             for a in row['artists']])
+                        return artists
+                    return row[attr_name]
         return None

@@ -39,8 +39,10 @@ class BaseItemGroupBox(QGroupBox):
                  hstretch=0,
                  vstretch=0):
         super().__init__(parent)
+
         self.name = name
         self.plural = plural
+        self.columns = {}
 
         self.current_selection = None
         self.edit_dialog = None
@@ -198,7 +200,7 @@ class BaseItemGroupBox(QGroupBox):
         else:
             self.buttonEdit.setEnabled(True)
             self.buttonDelete.setEnabled(True)
-            self.current_selection = self.model.rawData(item.indexes()[0])
+            self.current_selection = self.model.rowData(item.indexes()[0])
 
     @pyqtSlot()
     def updatePages(self, *args, **kwargs):
@@ -286,7 +288,14 @@ class AlbumGroupBox(BaseItemGroupBox):
     def __init__(self, parent=None):
         super().__init__(parent, name='album', plural='albums', vstretch=1)
 
-        self.model = AlbumTableModel(parent=self, name='albums')
+        self.columns = {'id': {'header': 'ID',
+                               'visible': False,
+                               'editable': False},
+                        'title': {'header': 'Title',
+                                  'visible': True,
+                                  'editable': True}}
+
+        self.model = AlbumTableModel(self)
         self.tableView.setModel(self.model)
         selection_model = self.tableView.selectionModel()
         selection_model.selectionChanged.connect(self.selectRadioItems)
@@ -298,8 +307,21 @@ class ArtistGroupBox(BaseItemGroupBox):
     def __init__(self, parent=None):
         super().__init__(parent, name='artist', plural='artists', vstretch=2)
 
+        self.columns = {'id': {'header': 'ID',
+                               'visible': False,
+                               'editable': False},
+                        'first_name': {'header': 'First Name',
+                                       'visible': True,
+                                       'editable': True},
+                        'alias': {'header': 'Alias',
+                                  'visible': True,
+                                  'editable': True},
+                        'last_name': {'header': 'Last Name',
+                                      'visible': True,
+                                      'editable': True}}
+
         self.edit_dialog = ArtistDialog
-        self.model = ArtistTableModel(parent=self, name='artists')
+        self.model = ArtistTableModel(self)
         self.tableView.setModel(self.model)
         selection_model = self.tableView.selectionModel()
         selection_model.selectionChanged.connect(self.selectRadioItems)
@@ -311,7 +333,14 @@ class GameGroupBox(BaseItemGroupBox):
     def __init__(self, parent=None):
         super().__init__(parent, name='game', plural='games', vstretch=1)
 
-        self.model = GameTableModel(parent=self, name='games')
+        self.columns = {'id': {'header': 'ID',
+                               'visible': False,
+                               'editable': False},
+                        'title': {'header': 'Title',
+                                  'visible': True,
+                                  'editable': True}}
+
+        self.model = GameTableModel(self)
         self.tableView.setModel(self.model)
         selection_model = self.tableView.selectionModel()
         selection_model.selectionChanged.connect(self.selectRadioItems)
@@ -323,7 +352,38 @@ class SongGroupBox(BaseItemGroupBox):
     def __init__(self, parent=None):
         super().__init__(parent, name='song', plural='songs', hstretch=3)
 
-        self.model = SongTableModel(parent=self, name='songs')
+        self.columns = {'id': {'header': 'ID',
+                               'visible': False,
+                               'editable': False},
+                        'album': {'header': 'Album',
+                                  'visible': True,
+                                  'editable': True},
+                        'artists': {'header': 'Artists',
+                                    'visible': True,
+                                    'editable': True},
+                        'game': {'header': 'Game',
+                                 'visible': True,
+                                 'editable': True},
+                        'song_type': {'header': 'Type',
+                                      'visible': True,
+                                      'editable': False},
+                        'title': {'header': 'Title',
+                                  'visible': True,
+                                  'editable': True},
+                        'num_played': {'header': 'Times played',
+                                       'visible': False,
+                                       'editable': False},
+                        'last_played': {'header': 'Last played',
+                                        'visible': False,
+                                        'editable': False},
+                        'length': {'header': 'Length',
+                                   'visible': False,
+                                   'editable': False},
+                        'path': {'header': 'File path',
+                                 'visible': False,
+                                 'editable': True}}
+
+        self.model = SongTableModel(self)
         self.tableView.setModel(self.model)
         selection_model = self.tableView.selectionModel()
         selection_model.selectionChanged.connect(self.selectRadioItems)
