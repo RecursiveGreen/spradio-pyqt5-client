@@ -13,102 +13,59 @@ from PyQt5.QtWidgets import (QDialog, QDialogButtonBox, QFormLayout, QLabel,
 from ..utils import post_server_data, put_server_data
 
 
-class ArtistDialog(QDialog):
+class BaseItemDialog(QDialog):
     '''
-    Dialog object for an artist item.
+    Abstract Dialog for all radio items.
     '''
-    def __init__(self, **kwargs):
-        super().__init__()
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.modified = False
-        self.original = {}
-        self.original['id'] = kwargs.get('id', '')
-        self.original['first_name'] = kwargs.get('first_name', '')
-        self.original['alias'] = kwargs.get('alias', '')
-        self.original['last_name'] = kwargs.get('last_name', '')
+        self.structure = {}
 
+        self.initStructure(kwargs)
         self.initUi()
-        self.resetValues()
+
+    def initStructure(self, kwargs):
+        for attr, item in self.parent().columns.items():
+            original = kwargs.get(attr, '')
+            self.structure[attr] = {}
+            self.structure[attr]['original'] = original
+            self.structure[attr]['widgets'] = {}
+            self.structure[attr]['widgets']['label'] = QLabel(self)
+            self.structure[attr]['widgets']['label'].setText(item['header'])
+            if item['editable']:
+                widgets = self.structure[attr]['widgets']
+                widgets['field'] = QLineEdit(self)
+                widgets['field'].textEdited.connect(self.textModified)
+            else:
+                self.structure[attr]['widgets']['field'] = QLabel(self)
+            self.structure[attr]['widgets']['field'].setText(str(original))
 
     def initUi(self):
-        self.setObjectName('dialogArtist')
-        self.resize(450, 300)
-        self.setMinimumSize(QSize(255, 165))
-        self.setMaximumSize(QSize(450, 300))
+        name = self.parent().name.capitalize()
+        self.setObjectName('dialog' + name)
 
         self.verticalLayout = QVBoxLayout(self)
-        self.verticalLayout.setObjectName('verticalLayoutArtist')
+        self.verticalLayout.setObjectName('verticalLayout' + name)
 
         self.formLayout = QFormLayout()
-        self.formLayout.setObjectName('formLayoutArtist')
+        self.formLayout.setObjectName('formLayout' + name)
 
-        # Id
-        self.labelId = QLabel(self)
-        self.labelId.setObjectName('labelIdArtist')
-        self.labelIdValue = QLabel(self)
-        self.labelIdValue.setObjectName('labelIdValueArtist')
-        self.formLayout.setWidget(0, QFormLayout.LabelRole, self.labelId)
-        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.labelIdValue)
-
-        # Spacer 1
-        spacer_1 = QSpacerItem(20, 40,
-                               QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.formLayout.setItem(1, QFormLayout.FieldRole, spacer_1)
-
-        # First Name
-        self.labelFirstName = QLabel(self)
-        self.labelFirstName.setObjectName('labelFirstNameArtist')
-        self.lineEditFirstName = QLineEdit(self)
-        self.lineEditFirstName.setObjectName('lineEditFirstNameArtist')
-        self.formLayout.setWidget(2,
-                                  QFormLayout.LabelRole,
-                                  self.labelFirstName)
-        self.formLayout.setWidget(2,
-                                  QFormLayout.FieldRole,
-                                  self.lineEditFirstName)
-
-        # Spacer 2
-        spacer_2 = QSpacerItem(20, 40,
-                               QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.formLayout.setItem(3, QFormLayout.FieldRole, spacer_2)
-
-        # Alias
-        self.labelAlias = QLabel(self)
-        self.labelAlias.setObjectName('labelAliasArtist')
-        self.lineEditAlias = QLineEdit(self)
-        self.lineEditAlias.setObjectName('lineEditAliasArtist')
-        self.formLayout.setWidget(4, QFormLayout.LabelRole, self.labelAlias)
-        self.formLayout.setWidget(4, QFormLayout.FieldRole, self.lineEditAlias)
-
-        # Spacer 3
-        spacer_3 = QSpacerItem(20, 40,
-                               QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.formLayout.setItem(5, QFormLayout.FieldRole, spacer_3)
-
-        # Last Name
-        self.labelLastName = QLabel(self)
-        self.labelLastName.setObjectName('labelLastNameArtist')
-        self.lineEditLastName = QLineEdit(self)
-        self.lineEditLastName.setObjectName('lineEditLastNameArtist')
-        self.formLayout.setWidget(6,
-                                  QFormLayout.LabelRole,
-                                  self.labelLastName)
-        self.formLayout.setWidget(6,
-                                  QFormLayout.FieldRole,
-                                  self.lineEditLastName)
-
-        # Spacer 4
-        spacer_4 = QSpacerItem(20, 40,
-                               QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.formLayout.setItem(7, QFormLayout.FieldRole, spacer_4)
-
-        self.lineEditFirstName.textEdited.connect(self.textModified)
-        self.lineEditAlias.textEdited.connect(self.textModified)
-        self.lineEditLastName.textEdited.connect(self.textModified)
+        # Labels / Line Edits for item model.
+        for attr, item in self.structure.items():
+            print(attr)
+            print(item)
+            self.formLayout.addRow(item['widgets']['label'],
+                                   item['widgets']['field'])
+            spacer = QSpacerItem(20, 40,
+                                 QSizePolicy.Minimum, QSizePolicy.Expanding)
+            self.formLayout.addItem(spacer)
 
         # Button Box
         self.buttonBox = QDialogButtonBox(self)
-        self.buttonBox.setObjectName('buttonBoxArtist')
+        self.buttonBox.setObjectName('buttonBox' + name)
         self.buttonBox.setOrientation(Qt.Horizontal)
         self.buttonBox.setStandardButtons(QDialogButtonBox.Apply |
                                           QDialogButtonBox.Cancel |
@@ -117,7 +74,7 @@ class ArtistDialog(QDialog):
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
         apply = self.buttonBox.button(QDialogButtonBox.Apply)
-        apply.clicked.connect(self.saveArtist)
+        apply.clicked.connect(self.saveItem)
         apply.setEnabled(False)
         reset = self.buttonBox.button(QDialogButtonBox.Reset)
         reset.clicked.connect(self.resetValues)
@@ -132,45 +89,45 @@ class ArtistDialog(QDialog):
         self.buttonBox.button(QDialogButtonBox.Apply).setEnabled(True)
 
     def resetValues(self):
-        font = QFont()
-        font.setBold(True)
-        font.setWeight(75)
-        if self.original['id'] == '':
-            font.setItalic(True)
-            self.labelIdValue.setText('[NOT CREATED YET]')
-        else:
-            self.labelIdValue.setText(str(self.original['id']))
-        self.labelIdValue.setFont(font)
-        self.lineEditFirstName.setText(self.original['first_name'])
-        self.lineEditAlias.setText(self.original['alias'])
-        self.lineEditLastName.setText(self.original['last_name'])
+        for attr, item in self.structure.items():
+            if attr == 'id' and item['original'] == '':
+                font = QFont()
+                font.setBold(True)
+                font.setWeight(75)
+                font.setItalic(True)
+                item['widgets']['field'].setFont(font)
+                item['widgets']['field'].setText('[NEW ITEM]')
+            else:
+                item['widgets']['field'].setText(str(item['original']))
 
         self.modified = False
         self.buttonBox.button(QDialogButtonBox.Apply).setEnabled(False)
 
-    def saveArtist(self):
+    def saveItem(self):
+        endpoint = self.parent().plural
         current_data = {}
-        current_data['first_name'] = self.lineEditFirstName.text()
-        current_data['alias'] = self.lineEditAlias.text()
-        current_data['last_name'] = self.lineEditLastName.text()
+        for attr, item in self.structure.items():
+            if attr is not 'id':
+                current_data[attr] = item['widgets']['field'].text()
 
-        if self.original['id'] == '':
-            status, results = post_server_data('artists', current_data)
+        if self.structure['id']['original'] == '':
+            status, results = post_server_data(endpoint, current_data)
             current_data['id'] = results['id']
         else:
-            current_data['id'] = self.original['id']
-            status, results = put_server_data('artists/' +
+            current_data['id'] = self.structure['id']['original']
+            status, results = put_server_data(endpoint + '/' +
                                               str(current_data['id']),
                                               current_data)
 
         if status in [200, 201]:
-            self.original = current_data
+            for attr, item in self.structure.items():
+                item['original'] = current_data[attr]
             self.resetValues()
             self.modified = False
             self.buttonBox.button(QDialogButtonBox.Apply).setEnabled(False)
 
     def accept(self):
-        self.saveArtist()
+        self.saveItem()
         self.done(QDialog.Accepted)
 
     def reject(self):
@@ -179,11 +136,7 @@ class ArtistDialog(QDialog):
     def retranslateUi(self):
         '''Translate labels into native language and assign them to widgets.'''
         _ = QCoreApplication.translate
+        name = self.parent().name.capitalize()
 
         # Dialog title
-        self.setWindowTitle(_('Client', 'Edit Artist'))
-
-        self.labelId.setText(_('Client', 'Id:'))
-        self.labelFirstName.setText(_('Client', 'First Name:'))
-        self.labelAlias.setText(_('Client', 'Alias:'))
-        self.labelLastName.setText(_('Client', 'Last Name:'))
+        self.setWindowTitle(_('Client', 'Edit ' + name))

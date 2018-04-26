@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (QAbstractItemView, QAbstractSpinBox, QGroupBox,
                              QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
                              QTableView, QVBoxLayout, QWidget)
 
-from .dialogs.radio import ArtistDialog
+from .dialogs.radio import BaseItemDialog
 from .models.radio import (AlbumTableModel, ArtistTableModel, GameTableModel,
                            SongTableModel)
 from .utils import delete_server_data
@@ -256,9 +256,9 @@ class BaseItemGroupBox(QGroupBox):
 
     def showDialog(self):
         if self.sender().objectName().startswith('buttonEdit'):
-            dialog = self.edit_dialog(**self.current_selection)
+            dialog = BaseItemDialog(self, **self.current_selection)
         else:
-            dialog = self.edit_dialog()
+            dialog = BaseItemDialog(self)
         dialog.exec_()
         self.updateTable()
 
@@ -320,7 +320,6 @@ class ArtistGroupBox(BaseItemGroupBox):
                                       'visible': True,
                                       'editable': True}}
 
-        self.edit_dialog = ArtistDialog
         self.model = ArtistTableModel(self)
         self.tableView.setModel(self.model)
         selection_model = self.tableView.selectionModel()
