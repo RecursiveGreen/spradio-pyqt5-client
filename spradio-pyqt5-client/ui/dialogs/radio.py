@@ -55,8 +55,6 @@ class BaseItemDialog(QDialog):
 
         # Labels / Line Edits for item model.
         for attr, item in self.structure.items():
-            print(attr)
-            print(item)
             self.formLayout.addRow(item['widgets']['label'],
                                    item['widgets']['field'])
             spacer = QSpacerItem(20, 40,
