@@ -5,7 +5,7 @@
 Classes for the Settings Dialog.
 '''
 
-from PyQt5.QtCore import QCoreApplication, QSize, Qt
+from PyQt5.QtCore import QCoreApplication, Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QDialog, QDialogButtonBox, QFormLayout, QLabel,
                              QLineEdit, QSizePolicy, QSpacerItem, QVBoxLayout)
@@ -39,7 +39,7 @@ class BaseItemDialog(QDialog):
             if item['editable']:
                 widgets = self.structure[attr]['widgets']
                 widgets['field'] = QLineEdit(self)
-                widgets['field'].textEdited.connect(self.textModified)
+                widgets['field'].textEdited.connect(self.dataModified)
             else:
                 self.structure[attr]['widgets']['field'] = QLabel(self)
 
@@ -82,7 +82,7 @@ class BaseItemDialog(QDialog):
 
         self.retranslateUi()
 
-    def textModified(self, *args, **kwargs):
+    def dataModified(self, *args, **kwargs):
         self.modified = True
         self.buttonBox.button(QDialogButtonBox.Apply).setEnabled(True)
 
