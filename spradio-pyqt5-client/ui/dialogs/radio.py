@@ -26,6 +26,7 @@ class BaseItemDialog(QDialog):
 
         self.initStructure(kwargs)
         self.initUi()
+        self.resetValues()
 
     def initStructure(self, kwargs):
         for attr, item in self.parent().columns.items():
@@ -41,7 +42,6 @@ class BaseItemDialog(QDialog):
                 widgets['field'].textEdited.connect(self.textModified)
             else:
                 self.structure[attr]['widgets']['field'] = QLabel(self)
-            self.structure[attr]['widgets']['field'].setText(str(original))
 
     def initUi(self):
         name = self.parent().name.capitalize()
@@ -54,7 +54,7 @@ class BaseItemDialog(QDialog):
         self.formLayout.setObjectName('formLayout' + name)
 
         # Labels / Line Edits for item model.
-        for attr, item in self.structure.items():
+        for item in self.structure.values():
             self.formLayout.addRow(item['widgets']['label'],
                                    item['widgets']['field'])
             spacer = QSpacerItem(20, 40,
