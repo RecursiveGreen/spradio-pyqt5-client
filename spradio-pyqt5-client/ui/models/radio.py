@@ -72,24 +72,27 @@ class ArtistTableModel(BaseRadioModel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.columns = {'full_name': 'Full Name'}
+
+    def data(self, index, role):
+        if index.isValid():
+            if (role == Qt.DisplayRole) or (role == Qt.EditRole):
+                return full_name(self._data[index.row()])
+        return None
+
 
 class AlbumTableModel(BaseRadioModel):
     '''Data model to represent albums on the radio.'''
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    pass
 
 
 class GameTableModel(BaseRadioModel):
     '''Data model to represent games on the radio.'''
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    pass
 
 
 class SongTableModel(BaseRadioModel):
     '''Data model to represent songs on the radio.'''
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
     def data(self, index, role):
         if index.isValid():
             if (role == Qt.DisplayRole) or (role == Qt.EditRole):
