@@ -34,18 +34,20 @@ class BaseItemGroupBox(QGroupBox):
     '''A GroupBox for administrating an item.'''
     def __init__(self,
                  parent=None,
+                 paginate=False,
                  name='',
                  plural='',
                  hstretch=0,
                  vstretch=0):
         super().__init__(parent)
 
+        self.paginate = paginate
+
         self.name = name
         self.plural = plural
         self.columns = {}
 
         self.current_selection = None
-        self.edit_dialog = None
 
         self.setObjectName('groupBox' + self.plural.capitalize())
 
@@ -80,6 +82,54 @@ class BaseItemGroupBox(QGroupBox):
         self.buttonRefresh.setFlat(True)
         spacerLeft = QSpacerItem(40, 20,
                                  QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout.addWidget(self.buttonRefresh)
+        self.horizontalLayout.addItem(spacerLeft)
+
+        if self.paginate:
+            self.initPagination()
+
+        self.buttonAdd = QPushButton(self)
+        self.buttonAdd.setObjectName('buttonAdd' + self.plural.capitalize())
+        icon = QIcon()
+        icon.addPixmap(QPixmap(':/icons/add-outline.svg'),
+                       QIcon.Normal,
+                       QIcon.On)
+        self.buttonAdd.setIcon(icon)
+        self.buttonAdd.setFlat(True)
+        self.buttonEdit = QPushButton(self)
+        self.buttonEdit.setObjectName('buttonEdit' + self.plural.capitalize())
+        icon = QIcon()
+        icon.addPixmap(QPixmap(':/icons/edit-pencil.svg'),
+                       QIcon.Normal,
+                       QIcon.On)
+        self.buttonEdit.setIcon(icon)
+        self.buttonEdit.setFlat(True)
+        self.buttonEdit.setEnabled(False)
+        self.buttonDelete = QPushButton(self)
+        self.buttonDelete.setObjectName('buttonDelete' + plural.capitalize())
+        icon = QIcon()
+        icon.addPixmap(QPixmap(':/icons/minus-outline.svg'),
+                       QIcon.Normal,
+                       QIcon.On)
+        self.buttonDelete.setIcon(icon)
+        self.buttonDelete.setFlat(True)
+        self.buttonDelete.setEnabled(False)
+
+        self.horizontalLayout.addWidget(self.buttonAdd)
+        self.horizontalLayout.addWidget(self.buttonEdit)
+        self.horizontalLayout.addWidget(self.buttonDelete)
+
+        self.verticalLayout.addLayout(self.horizontalLayout)
+
+        self.buttonRefresh.clicked.connect(self.updateTable)
+        self.buttonAdd.clicked.connect(self.showDialog)
+        self.buttonEdit.clicked.connect(self.showDialog)
+        self.buttonDelete.clicked.connect(self.deleteItem)
+
+        self.retranslateUi()
+
+    def initPagination(self):
         self.buttonFirstPage = QPushButton(self)
         self.buttonFirstPage.setObjectName('buttonFirstPage' +
                                            self.plural.capitalize())
@@ -135,35 +185,7 @@ class BaseItemGroupBox(QGroupBox):
         self.buttonLastPage.setFlat(True)
         spacerRight = QSpacerItem(40, 20,
                                   QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.buttonAdd = QPushButton(self)
-        self.buttonAdd.setObjectName('buttonAdd' + self.plural.capitalize())
-        icon = QIcon()
-        icon.addPixmap(QPixmap(':/icons/add-outline.svg'),
-                       QIcon.Normal,
-                       QIcon.On)
-        self.buttonAdd.setIcon(icon)
-        self.buttonAdd.setFlat(True)
-        self.buttonEdit = QPushButton(self)
-        self.buttonEdit.setObjectName('buttonEdit' + self.plural.capitalize())
-        icon = QIcon()
-        icon.addPixmap(QPixmap(':/icons/edit-pencil.svg'),
-                       QIcon.Normal,
-                       QIcon.On)
-        self.buttonEdit.setIcon(icon)
-        self.buttonEdit.setFlat(True)
-        self.buttonEdit.setEnabled(False)
-        self.buttonDelete = QPushButton(self)
-        self.buttonDelete.setObjectName('buttonDelete' + plural.capitalize())
-        icon = QIcon()
-        icon.addPixmap(QPixmap(':/icons/minus-outline.svg'),
-                       QIcon.Normal,
-                       QIcon.On)
-        self.buttonDelete.setIcon(icon)
-        self.buttonDelete.setFlat(True)
-        self.buttonDelete.setEnabled(False)
 
-        self.horizontalLayout.addWidget(self.buttonRefresh)
-        self.horizontalLayout.addItem(spacerLeft)
         self.horizontalLayout.addWidget(self.buttonFirstPage)
         self.horizontalLayout.addWidget(self.buttonPreviousPage)
         self.horizontalLayout.addWidget(self.spinBoxCurrentPage)
@@ -171,25 +193,12 @@ class BaseItemGroupBox(QGroupBox):
         self.horizontalLayout.addWidget(self.buttonNextPage)
         self.horizontalLayout.addWidget(self.buttonLastPage)
         self.horizontalLayout.addItem(spacerRight)
-        self.horizontalLayout.addWidget(self.buttonAdd)
-        self.horizontalLayout.addWidget(self.buttonEdit)
-        self.horizontalLayout.addWidget(self.buttonDelete)
-
-        self.verticalLayout.addLayout(self.horizontalLayout)
-
-        self.buttonRefresh.clicked.connect(self.updateTable)
 
         self.buttonFirstPage.clicked.connect(self.updatePages)
         self.buttonPreviousPage.clicked.connect(self.updatePages)
         self.spinBoxCurrentPage.valueChanged.connect(self.updatePages)
         self.buttonNextPage.clicked.connect(self.updatePages)
         self.buttonLastPage.clicked.connect(self.updatePages)
-
-        self.buttonAdd.clicked.connect(self.showDialog)
-        self.buttonEdit.clicked.connect(self.showDialog)
-        self.buttonDelete.clicked.connect(self.deleteItem)
-
-        self.retranslateUi()
 
     @pyqtSlot(QItemSelection)
     def selectRadioItems(self, item=QItemSelection()):
@@ -229,24 +238,27 @@ class BaseItemGroupBox(QGroupBox):
         Updates the data within the table view from the server. Also refreshes
         the page controls to reflect the current position.
         '''
-        self.model.current_page = self.spinBoxCurrentPage.value()
+        if self.paginate:
+            self.model.current_page = self.spinBoxCurrentPage.value()
+        
         self.model.updateData()
         self.resizeColumns()
 
         self.tableView.clearSelection()
         self.current_selection = None
 
-        current = self.model.current_page
-        total = self.model.total_pages
-        begin = bool(current != 1)
-        end = bool(current != total)
+        if self.paginate:
+            current = self.model.current_page
+            total = self.model.total_pages
+            begin = bool(current != 1)
+            end = bool(current != total)
 
-        self.buttonFirstPage.setEnabled(begin)
-        self.buttonPreviousPage.setEnabled(begin)
-        self.spinBoxCurrentPage.setMaximum(total)
-        self.labelTotalPages.setText('/ ' + str(total))
-        self.buttonNextPage.setEnabled(end)
-        self.buttonLastPage.setEnabled(end)
+            self.buttonFirstPage.setEnabled(begin)
+            self.buttonPreviousPage.setEnabled(begin)
+            self.spinBoxCurrentPage.setMaximum(total)
+            self.labelTotalPages.setText('/ ' + str(total))
+            self.buttonNextPage.setEnabled(end)
+            self.buttonLastPage.setEnabled(end)
 
     def resizeColumns(self):
         '''Automatically resizes table columns to fit new data.'''
@@ -349,7 +361,11 @@ class GameGroupBox(BaseItemGroupBox):
 class SongGroupBox(BaseItemGroupBox):
     '''A GroupBox for administrating songs.'''
     def __init__(self, parent=None):
-        super().__init__(parent, name='song', plural='songs', hstretch=3)
+        super().__init__(parent,
+                         paginate=True,
+                         name='song',
+                         plural='songs',
+                         hstretch=3)
 
         self.columns = {'id': {'header': 'ID',
                                'visible': False,

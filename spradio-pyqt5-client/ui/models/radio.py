@@ -18,15 +18,25 @@ class BaseRadioModel(QAbstractTableModel):
         self.name = parent.plural
         self.columns = {k: v['header'] for (k, v) in parent.columns.items()
                         if v['visible']}
+        self.paginate = parent.paginate
 
         self._data = []
         self.current_page = 1
         self.total_pages = 1
 
     def updateData(self):
-        status, results = get_server_data(self.name, self.current_page)
-        self._data = results['results']
-        self.total_pages = results['total_pages']
+        if self.paginate:
+            status, results = get_server_data(self.name, self.current_page)
+            self._data = results['results']
+            self.total_pages = results['total_pages']
+        else:
+            all_items = []
+            status, results = get_server_data(self.name, 1)
+            all_items += results['results']
+            for x in range(2, results['total_pages'] + 1):
+                status, results = get_server_data(self.name, x)
+                all_items += results['results']
+            self._data = all_items
         self.updateLayout()
 
     def updateLayout(self):
