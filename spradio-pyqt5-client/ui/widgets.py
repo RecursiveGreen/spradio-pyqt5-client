@@ -404,6 +404,16 @@ class SongGroupBox(BaseItemGroupBox):
         selection_model.selectionChanged.connect(self.selectRadioItems)
         self.updateTable()
 
+    def resizeColumns(self):
+        header = self.tableView.horizontalHeader()
+        column_names = list(self.model.columns.keys())
+        for column in range(self.model.columnCount()):
+            if column_names[column] == 'song_type':
+                header.setSectionResizeMode(column,
+                                            QHeaderView.ResizeToContents)
+            else:
+                header.setSectionResizeMode(column, QHeaderView.Stretch)
+
 
 class PlaylistTab(QWidget):
     '''A widget for administrating the all models of the playlist data.'''
