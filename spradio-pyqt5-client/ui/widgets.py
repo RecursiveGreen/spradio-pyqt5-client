@@ -10,7 +10,7 @@ from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import (QAbstractItemView, QAbstractSpinBox, QGroupBox,
                              QHBoxLayout, QHeaderView, QLabel, QMessageBox,
                              QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
-                             QTableView, QVBoxLayout, QWidget)
+                             QSplitter, QTableView, QVBoxLayout, QWidget)
 
 from .dialogs.radio import BaseItemDialog
 from .models.radio import (AlbumTableModel, ArtistTableModel, GameTableModel,
@@ -240,7 +240,7 @@ class BaseItemGroupBox(QGroupBox):
         '''
         if self.paginate:
             self.model.current_page = self.spinBoxCurrentPage.value()
-        
+
         self.model.updateData()
         self.resizeColumns()
 
@@ -365,7 +365,7 @@ class SongGroupBox(BaseItemGroupBox):
                          paginate=True,
                          name='song',
                          plural='songs',
-                         hstretch=3)
+                         hstretch=2)
 
         self.columns = {'id': {'header': 'ID',
                                'visible': False,
@@ -426,21 +426,21 @@ class PlaylistTab(QWidget):
         self.horizontalLayout.setContentsMargins(6, 6, 6, 6)
         self.horizontalLayout.setSpacing(6)
 
+        self.horizontalSplitter = QSplitter(self)
+        self.horizontalSplitter.setObjectName("horizontalSplitterPlaylist")
+        self.horizontalSplitter.setChildrenCollapsible(False)
+
         # Artists/Albums/Games Layout Widget
-        self.verticalWidget = QWidget(self)
-        self.verticalWidget.setObjectName('verticalWidgetPlaylist')
+        self.verticalSplitter = QSplitter(Qt.Vertical, self)
+        self.verticalSplitter.setObjectName('verticalSplitterPlaylist')
+        self.verticalSplitter.setChildrenCollapsible(False)
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.verticalWidget
+        sizePolicy.setHeightForWidth(self.verticalSplitter
                                      .sizePolicy()
                                      .hasHeightForWidth())
-        self.verticalWidget.setSizePolicy(sizePolicy)
-        self.verticalLayout = QVBoxLayout(self.verticalWidget)
-        self.verticalLayout.setObjectName('verticalLayoutPlaylist')
-        self.verticalLayout.setContentsMargins(0, 0, 1, 0)
-        self.verticalLayout.setSpacing(1)
-        self.horizontalLayout.addWidget(self.verticalWidget)
+        self.verticalSplitter.setSizePolicy(sizePolicy)
+        self.horizontalSplitter.addWidget(self.verticalSplitter)
 
         # Create the group box widgets for the playlist items
         self.groupBoxArtists = ArtistGroupBox(self)
@@ -449,11 +449,12 @@ class PlaylistTab(QWidget):
         self.groupBoxSongs = SongGroupBox(self)
 
         # Add group boxes to layouts
-        self.verticalLayout.addWidget(self.groupBoxArtists)
-        self.verticalLayout.addWidget(self.groupBoxAlbums)
-        self.verticalLayout.addWidget(self.groupBoxGames)
+        self.verticalSplitter.addWidget(self.groupBoxArtists)
+        self.verticalSplitter.addWidget(self.groupBoxAlbums)
+        self.verticalSplitter.addWidget(self.groupBoxGames)
 
-        self.horizontalLayout.addWidget(self.groupBoxSongs)
+        self.horizontalSplitter.addWidget(self.groupBoxSongs)
+        self.horizontalLayout.addWidget(self.horizontalSplitter)
 
 
 class ControlsTab(QWidget):
